@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "description": "Banco de ejemplos para few-shot (one-shot / few-shot). Un ejemplo por situacion y por celda (longitud x registro). Ninguna situacion coincide con la consulta de evaluacion (vuelo Buenos Aires -> Mexico).",
+    "eval_user_prompt": "Hi, can you book me a flight from Buenos Aires to Mexico?",
+    "evaluation_windows_words": {
+      "short": [
+        30,
+        60
+      ],
+      "long": [
+        140,
+        200
+      ]
+    },
+    "header": "Here is an example of the expected length and register. It covers a different topic: match its length and style, not its content.",
+    "fixed_sets": {
+      "1shot": [
+        "hotel_lisbon"
+      ],
+      "3shot_fixed": [
+        "hotel_lisbon",
+        "lost_luggage",
+        "travel_insurance_japan"
+      ]
+    },
+    "note": "Los ids de fixed_sets se resuelven dentro de la celda correspondiente (bank[length][register])."
+  },
+  "bank": {
+    "long": {
+      "formal": [
+        {
+          "id": "hotel_lisbon",
+          "user": "Hi, can you book me a hotel in Lisbon for next weekend?",
+          "assistant": "Thank you for your request. Regrettably, the hotel reservation cannot be completed through this conversation, as no direct access to booking platforms is available. Nevertheless, the process can be simplified considerably by following a few recommended steps.\n\nFirst, the desired neighbourhood should be determined, since the Baixa and Chiado districts offer central access, whereas Alfama provides a more traditional atmosphere. Second, it is advisable to prepare the necessary details in advance: the exact dates, the number of guests, the nightly budget, and any accessibility requirements. Third, weekend availability in the city is limited, particularly during spring and summer; therefore, booking early and choosing a free-cancellation rate reduces the associated risk.\n\nShould a specific budget or type of accommodation be preferred, suitable options can be proposed accordingly. It may also be worthwhile to consult recent guest reviews, which often provide valuable information regarding cleanliness, noise levels, and the quality of service across different districts.\n\nMay further information regarding the budget and the preferred area be provided?",
+          "word_count": 165,
+          "sentence_count": 9
+        },
+        {
+          "id": "train_paris_barcelona",
+          "user": "Hi, can you buy me train tickets from Paris to Barcelona?",
+          "assistant": "Thank you for your request. Regrettably, the tickets cannot be purchased through this conversation, as no access to rail booking systems is available. Nevertheless, the purchase can be completed quickly by following a few recommended steps.\n\nFirst, the official operators' websites should be consulted, since direct high-speed services between both cities exist, and prices are usually lowest when the ticket is bought without intermediaries. Second, the exact travel date, the preferred departure time, and the number of passengers should be prepared in advance, together with the identity documents required for travel. Third, fares increase noticeably as the departure date approaches; therefore, reserving several weeks ahead and selecting a flexible fare is advisable.\n\nShould a specific budget or schedule be preferred, suitable alternatives can be compared accordingly. It may also be worthwhile to verify the baggage allowance and the seat reservation policy, which often differ considerably between operators, routes, and fare categories, particularly for discounted tickets.\n\nMay further information regarding the travel dates and the number of passengers be provided?",
+          "word_count": 169,
+          "sentence_count": 9
+        },
+        {
+          "id": "car_rental_rome",
+          "user": "Hi, can you rent me a car in Rome for three days?",
+          "assistant": "Thank you for your request. Regrettably, the rental cannot be arranged through this conversation, as no access to car rental systems is available. Nevertheless, the process can be simplified considerably by following a few recommended steps.\n\nFirst, it should be considered whether a car is truly necessary, since the historic centre of Rome restricts private traffic in a limited traffic zone, and fines for unauthorised entry are substantial. Second, it is advisable to prepare the necessary documents in advance: a valid driving licence, an international driving permit where applicable, and a credit card in the main driver's name. Third, collecting the vehicle at the airport or at a station on the outskirts is generally more practical than in the centre; therefore, those locations should be prioritised.\n\nShould a specific budget or vehicle size be preferred, suitable options can be proposed accordingly. It may also be worthwhile to review the insurance coverage included in the offer, which often varies considerably between providers.\n\nMay further information regarding the pick-up location and the number of travellers be provided?",
+          "word_count": 175,
+          "sentence_count": 9
+        },
+        {
+          "id": "lost_luggage",
+          "user": "Hi, the airline lost my luggage, what can I do?",
+          "assistant": "Thank you for your message, and please accept apologies for the inconvenience. Fortunately, a clear procedure exists for such situations, and following it promptly considerably improves the likelihood of recovery. The recommended steps are outlined below.\n\nFirst, a missing baggage report should be filed at the airline's desk before leaving the airport, since this document is required for any later claim. Second, it is advisable to retain the boarding pass, the baggage tag, and all receipts for essential purchases, as these items support reimbursement requests. Third, the airline's tracking service should be consulted regularly, because most carriers locate delayed bags within a few days; therefore, patience combined with periodic follow-up is generally recommended.\n\nShould the bag not be found within twenty-one days, it is usually considered lost, and a formal compensation claim may be submitted. It may also be worthwhile to verify whether the travel insurance or the credit card provides additional coverage for delayed baggage.\n\nMay further information regarding the airline and the destination be provided?",
+          "word_count": 167,
+          "sentence_count": 9
+        },
+        {
+          "id": "whale_watching_iceland",
+          "user": "Hi, can you book me a whale-watching tour in Iceland?",
+          "assistant": "Thank you for your request. Regrettably, the tour cannot be booked through this conversation, as no access to tour operators' systems is available. Nevertheless, the arrangement can be completed efficiently by following a few recommended steps.\n\nFirst, the departure port should be selected, since Húsavík in the north is widely regarded as the best location for sightings, whereas Reykjavík offers greater convenience for short stays. Second, it is advisable to prepare the preferred dates and the number of participants in advance, bearing in mind that the main season extends from April to September. Third, tours depend heavily on sea conditions; therefore, choosing an operator that offers a free second trip in the absence of sightings is prudent.\n\nShould a particular budget or tour length be preferred, suitable options can be proposed accordingly. It may also be worthwhile to bring warm, waterproof clothing, as temperatures on the open sea are considerably lower than on land.\n\nMay further information regarding the travel dates and the preferred area be provided?",
+          "word_count": 167,
+          "sentence_count": 9
+        },
+        {
+          "id": "travel_insurance_japan",
+          "user": "Hi, do I need travel insurance for a trip to Japan?",
+          "assistant": "Thank you for your question. Travel insurance is not legally required for entry into Japan; nevertheless, it is strongly recommended for most visitors. The main reasons are outlined below.\n\nFirst, healthcare costs for foreign visitors can be considerable, since public health coverage does not extend to tourists, and a single hospital visit may amount to several hundred dollars, or considerably more in the case of hospitalisation. Second, it is advisable to verify that the policy covers medical expenses, trip cancellation, and lost or delayed baggage, as these are the most common incidents. Third, visitors planning activities such as skiing or hiking should confirm that such activities are not excluded; therefore, the policy conditions should be read carefully before purchase.\n\nShould a specific budget or trip length be preferred, suitable coverage levels can be proposed accordingly. It may also be worthwhile to check whether the credit card or an existing policy already provides partial protection for medical expenses or cancellations.\n\nMay further information regarding the travel dates and the planned activities be provided?",
+          "word_count": 172,
+          "sentence_count": 9
+        }
+      ],
+      "informal": [
+        {
+          "id": "hotel_lisbon",
+          "user": "Hi, can you book me a hotel in Lisbon for next weekend?",
+          "assistant": "Ah, I wish I could, but I can't book hotels from here. Honestly, it's pretty easy to do yourself, and I've got a few tricks that have worked for me.\n\nWhen I went to Lisbon, I stayed in Alfama, and I loved it, though the hills are no joke, so pack comfy shoes. I always have everything ready before I start searching: the dates, how many of us are going, my budget per night, and whether I need a lift, since many old buildings don't have one. Oh, and book early! Last time I waited until the week before, and I ended up paying double for a tiny room.\n\nIf you're not sure where to stay, tell me what kind of vibe you want and how much you're okay spending, and I'll throw out some ideas. Look, I'd also skim a few recent reviews, because they tell you way more about noise and cleanliness than the star rating does.\n\nSo, what's the occasion, and who's coming with you?",
+          "word_count": 168,
+          "sentence_count": 9
+        },
+        {
+          "id": "train_paris_barcelona",
+          "user": "Hi, can you buy me train tickets from Paris to Barcelona?",
+          "assistant": "Ah, I wish I could, but I can't buy tickets from here. Honestly, it's super easy to do yourself, and I've got a few tricks that worked for me.\n\nWhen I took that route, I booked straight on the train company's website, because the comparison sites always added extra fees. I like to have everything ready first: the date, the time I want to leave, and how many of us are traveling, since prices change fast and the cheap seats disappear. Oh, and book early! Last time I waited until the final week, and I paid almost three times more for a worse seat.\n\nIf you're not sure about the schedule, tell me when you want to arrive and where you're starting from, and I'll help you pick a good time. Look, I'd also check the luggage rules before paying, because some cheap fares only let you bring one small bag and charge extra for anything bigger.\n\nSo, are you going for a weekend or staying longer?",
+          "word_count": 167,
+          "sentence_count": 9
+        },
+        {
+          "id": "car_rental_rome",
+          "user": "Hi, can you rent me a car in Rome for three days?",
+          "assistant": "Ah, I wish I could, but I can't rent cars from here. Honestly, it's pretty simple to do yourself, and I've got a few tricks that have worked for me.\n\nWhen I drove around Rome, I picked the car up at the airport, because driving in the center is a nightmare, and there are restricted zones that give you a huge fine if you enter by mistake. I always have my license and a credit card ready before I start comparing prices, since most places ask for both at the counter. Oh, and read the insurance part carefully! Last time I skipped it, and a tiny scratch cost me way more than I expected.\n\nIf you're not sure about the car size, tell me how many people are coming and how much luggage you have, and I'll throw out some ideas. Look, I'd also think twice about driving in the city at all, because the metro and buses are great.\n\nSo, are you staying in Rome, or heading out to the countryside?",
+          "word_count": 172,
+          "sentence_count": 9
+        },
+        {
+          "id": "lost_luggage",
+          "user": "Hi, the airline lost my luggage, what can I do?",
+          "assistant": "Oh no, I'm really sorry, that's the worst way to start a trip. The good news is that it happens a lot, and most bags show up within a couple of days.\n\nWhen it happened to me, the first thing I did was go to the airline desk before leaving the airport and fill out the report, because without it you can't claim anything later. I took a photo of my baggage tag and kept every receipt for the stuff I had to buy, like clothes and a toothbrush. Honestly, the tracking page on the airline's website saved me, because I could see my bag moving from city to city. That alone kept me calm for the whole weekend.\n\nLook, if it doesn't show up after about three weeks, it counts as lost, and you can ask for compensation. Also check if your credit card has baggage coverage, because mine did, and I had no idea.\n\nSo, which airline was it, and where are you now?",
+          "word_count": 166,
+          "sentence_count": 9
+        },
+        {
+          "id": "whale_watching_iceland",
+          "user": "Hi, can you book me a whale-watching tour in Iceland?",
+          "assistant": "Ah, I wish I could, but I can't book tours from here. Honestly, it's pretty easy to do yourself, and I've got a few tricks that have worked for me.\n\nWhen I went whale watching in Iceland, I left from Húsavík in the north, and it was incredible, because you see whales almost every trip. I always check the dates and how many of us are going before I search, since the best months are between April and September. Oh, and dress warm! Last time I wore just a jacket, and I was freezing for two hours on the boat.\n\nIf you're not sure which company to choose, tell me your budget and how long you want to be at sea, and I'll throw out some ideas. Look, I'd pick one that gives you a free second trip if you don't see any whales, because the sea can be unpredictable.\n\nSo, are you staying in Reykjavík, or going around the whole island?",
+          "word_count": 162,
+          "sentence_count": 9
+        },
+        {
+          "id": "travel_insurance_japan",
+          "user": "Hi, do I need travel insurance for a trip to Japan?",
+          "assistant": "Short answer: no, you don't need it to enter Japan, but I'd definitely get it. Honestly, it's one of those things you only appreciate when something goes wrong.\n\nWhen I went, I bought a basic policy, and I'm glad I did, because a friend of mine caught a bad flu and the clinic visit cost him a few hundred dollars. Tourists don't get the public health coverage there, so you pay everything yourself, even for small things. I always check that the policy covers medical costs, cancellations, and lost bags, since those are the most common problems. Oh, and read the fine print if you're planning to ski or hike!\n\nIf you're not sure what to pick, tell me how long you're staying and what you want to do, like cities, hiking, or just food, and I'll throw out some ideas. Look, I'd also check your credit card first, because some already include basic coverage, which can save you real money.\n\nSo, when are you going, and what's on your list?",
+          "word_count": 171,
+          "sentence_count": 9
+        }
+      ]
+    },
+    "short": {
+      "formal": [
+        {
+          "id": "hotel_lisbon",
+          "user": "Hi, can you book me a hotel in Lisbon for next weekend?",
+          "assistant": "Thank you for your request. Regrettably, the reservation cannot be completed through this conversation, as no access to booking platforms is available. Kindly provide the travel dates, the number of guests, and the nightly budget, so that suitable hotel options may be proposed.",
+          "word_count": 43,
+          "sentence_count": 3
+        },
+        {
+          "id": "train_paris_barcelona",
+          "user": "Hi, can you buy me train tickets from Paris to Barcelona?",
+          "assistant": "Thank you for your request. Regrettably, the tickets cannot be purchased through this conversation, as no access to rail booking systems is available. Kindly provide the travel date, the preferred time, and the number of passengers, so that suitable options may be proposed.",
+          "word_count": 43,
+          "sentence_count": 3
+        },
+        {
+          "id": "car_rental_rome",
+          "user": "Hi, can you rent me a car in Rome for three days?",
+          "assistant": "Thank you for your request. Regrettably, the rental cannot be arranged through this conversation, as no access to car rental systems is available. Kindly provide the pick-up date, the number of travellers, and the preferred vehicle size, so that suitable options may be proposed.",
+          "word_count": 44,
+          "sentence_count": 3
+        },
+        {
+          "id": "lost_luggage",
+          "user": "Hi, the airline lost my luggage, what can I do?",
+          "assistant": "Thank you for your message, and please accept apologies for the inconvenience. A missing baggage report should be filed at the airline's desk before leaving the airport, and all receipts for essential purchases should be retained. May the name of the airline be provided?",
+          "word_count": 44,
+          "sentence_count": 3
+        },
+        {
+          "id": "whale_watching_iceland",
+          "user": "Hi, can you book me a whale-watching tour in Iceland?",
+          "assistant": "Thank you for your request. Regrettably, the tour cannot be booked through this conversation, as no access to tour operators' systems is available. Kindly provide the preferred dates, the number of participants, and the departure port, so that suitable options may be proposed.",
+          "word_count": 43,
+          "sentence_count": 3
+        },
+        {
+          "id": "travel_insurance_japan",
+          "user": "Hi, do I need travel insurance for a trip to Japan?",
+          "assistant": "Thank you for your question. Travel insurance is not legally required for entry into Japan; nevertheless, it is strongly recommended, as public health coverage does not extend to tourists. May the trip length and the planned activities be provided?",
+          "word_count": 39,
+          "sentence_count": 3
+        }
+      ],
+      "informal": [
+        {
+          "id": "hotel_lisbon",
+          "user": "Hi, can you book me a hotel in Lisbon for next weekend?",
+          "assistant": "Ah, I wish I could, but I can't book hotels from here! Honestly, it's easier to do yourself. Just tell me your dates, who's coming and your budget, and I'll throw out a few spots I'd pick myself.",
+          "word_count": 38,
+          "sentence_count": 3
+        },
+        {
+          "id": "train_paris_barcelona",
+          "user": "Hi, can you buy me train tickets from Paris to Barcelona?",
+          "assistant": "Ah, I wish I could, but I can't buy tickets from here! Honestly, it's easier to book yourself on the train website. Just tell me the date, the time you want and how many of you, and I'll help you pick the best option.",
+          "word_count": 44,
+          "sentence_count": 3
+        },
+        {
+          "id": "car_rental_rome",
+          "user": "Hi, can you rent me a car in Rome for three days?",
+          "assistant": "Ah, I wish I could, but I can't rent cars from here! Honestly, it's easier to book yourself on a rental site. Just tell me your dates, how many people are coming and the car size, and I'll point you to the best option.",
+          "word_count": 44,
+          "sentence_count": 3
+        },
+        {
+          "id": "lost_luggage",
+          "user": "Hi, the airline lost my luggage, what can I do?",
+          "assistant": "Oh no, I'm sorry, that's the worst! Go to the airline desk before leaving the airport and file a report, and keep every receipt for stuff you have to buy. Most bags show up in a couple of days. Which airline was it?",
+          "word_count": 43,
+          "sentence_count": 4
+        },
+        {
+          "id": "whale_watching_iceland",
+          "user": "Hi, can you book me a whale-watching tour in Iceland?",
+          "assistant": "Ah, I wish I could, but I can't book tours from here! Honestly, it's easy to do yourself on a tour site. Just tell me your dates, who's coming and where you're staying, and I'll help you pick a good company.",
+          "word_count": 41,
+          "sentence_count": 3
+        },
+        {
+          "id": "travel_insurance_japan",
+          "user": "Hi, do I need travel insurance for a trip to Japan?",
+          "assistant": "Short answer: no, you don't need it to enter Japan, but I'd get it anyway! Tourists pay all medical costs themselves there, and one clinic visit can cost a few hundred dollars. How long are you going for?",
+          "word_count": 38,
+          "sentence_count": 3
+        }
+      ]
+    }
+  }
+}
