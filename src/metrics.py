@@ -23,6 +23,11 @@ def count_paragraphs(text):
     return len([part for part in parts if part.strip()])
 
 
+def clean_countdown(text):
+    """Remove CAPEL countdown markers (<k>) before counting."""
+    return re.sub(r"<\d+>", " ", text).strip()
+
+
 def evaluate(text, lo, hi, target):
     """Evaluate a response against the desired word window.
 

@@ -25,6 +25,7 @@ class Experiment:
     lo: Optional[int]               # desired window lower bound
     hi: Optional[int]               # desired window upper bound
     asked_target: Optional[int]     # target actually requested in the prompt
+    strip_markers: bool = False     # remove <k> countdown markers before counting
 
 
 CELLS = [
@@ -84,7 +85,7 @@ def _build():
     )
 
     def add_cells(group, technique, length_mods, formality_mods,
-                  example_ids=None, retry_mode=None, asked=None):
+                  example_ids=None, retry_mode=None, asked=None, strip_markers=False):
         for length, formality in CELLS:
             target, lo, hi = WINDOWS[length]
             asked_target = asked[length] if asked else target
@@ -103,6 +104,7 @@ def _build():
                     lo,
                     hi,
                     asked_target,
+                    strip_markers,
                 )
             )
 
@@ -194,6 +196,14 @@ def _build():
         {"short": P.LENGTH_SHORT, "long": P.LENGTH_LONG},
         FORMALITY_MODS,
         retry_mode="mh",
+    )
+
+    # 13. CAPEL: countdown-aided prompting for exact length.
+    add_cells(
+        "countdown", "countdown",
+        {"short": P.COUNTDOWN_SHORT, "long": P.COUNTDOWN_LONG},
+        FORMALITY_MODS,
+        strip_markers=True,
     )
 
     return exps

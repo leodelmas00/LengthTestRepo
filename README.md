@@ -30,7 +30,7 @@ python run.py --n 100 --concurrency 8 --out results/summary.csv
 Select experiments by id (`combo__short_informal`) or by group
 (`baseline`, `aislados`, `combinaciones`, `over_asking`, `unidad_a`, `unidad_b`,
 `desacople_informal`, `one_shot`, `few_shot`, `retry_concrete`, `retry_generic`,
-`retry_mh`).
+`retry_mh`, `countdown`).
 
 ## Prompt assembly
 
@@ -61,6 +61,7 @@ The user prompt is fixed:
 | `retry_concrete` | 4 cells, external word counter + numeric feedback (max 2 retries) |
 | `retry_generic` | 4 cells, direction-only feedback (max 2 retries) |
 | `retry_mh` | 4 cells, Metropolis-Hastings iterative sampling + judge (max 5 rounds) |
+| `countdown` | 4 cells, CAPEL countdown markers for exact length (one-shot) |
 
 Evaluation windows are always the **desired** ones: short `[30, 60]` (target 45),
 long `[140, 200]` (target 170). Over-asking cells record both `target` and
@@ -107,6 +108,20 @@ python run.py --experiments retry_mh,retry_concrete --max-retries 5 --n 100
   in short.
 - Acceptance is deterministic instead of random sampling (temperature 0).
 - The judge is not called when the candidate is already inside the window.
+
+## CAPEL countdown (`countdown`)
+
+A prompt-based, one-shot strategy: instead of a numeric instruction, the length
+module asks the model to write while counting, emitting a `<k>` marker before
+each word (`<N> ... <1>`) and terminating with `<0>`. The numeric length sentence
+is replaced while the non-numeric instruction (`Develop the topic in depth…` for
+long, `Do not add information…` for short) is kept. Formality and guardrail are
+unchanged. The code strips the markers with
+`re.sub(r"<\d+>", " ", text).strip()` before counting words, so only the real
+words are measured. There is no retry loop and no judge.
+
+The technique is isolated via `Experiment.strip_markers`; other experiments are
+unaffected.
 
 ## Layout
 

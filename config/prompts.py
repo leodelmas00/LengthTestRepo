@@ -244,3 +244,51 @@ def judge_messages(length, formality, user_message, candidate, previous):
         {"role": "system", "content": JUDGE_SYSTEM},
         {"role": "user", "content": user},
     ]
+
+
+# --- CAPEL: countdown-aided prompting for exact length --------------------
+
+COUNTDOWN_KEEP_SHORT = (
+    "Do not add information beyond what is strictly requested, even if other "
+    "modules suggest further development."
+)
+COUNTDOWN_KEEP_LONG = "Develop the topic in depth with examples where applicable."
+
+
+def countdown_module(target, keep_instruction):
+    """Build the countdown length module (replaces the numeric instruction)."""
+    return (
+        "%s\n\n"
+        "Required output format:\n"
+        "1. For each integer k from %d down to 1: print the marker <k>, then "
+        "immediately append one English word (letters with optional "
+        "leading/trailing punctuation, such as comma, period, apostrophe or "
+        "hyphen). No spaces inside this token.\n"
+        "2. After the word paired with <1>, write <0> and stop generating.\n"
+        "3. Markers and punctuation are not counted toward the %d-word total; "
+        "only the English words count.\n"
+        "4. If you risk running short, add fresh, meaningful prose; do not end "
+        "with bare markers.\n\n"
+        "Rules:\n"
+        "- Produce exactly %d markers (<%d> ... <1>) and exactly %d words.\n"
+        "- The numbers in successive markers must decrease by 1, with no skips "
+        "or repeats.\n"
+        "- Two markers may never appear back to back without a word between "
+        "them.\n"
+        "- No extra text after <0>.\n"
+        "- A token may include a trailing newline (\\n) to represent a line "
+        "break.\n\n"
+        "Correct example (N = 5): "
+        "<5>Hello,<4>world!<3>How's<2>everything?<1>Great.<0>"
+    ) % (
+        keep_instruction,
+        target,
+        target,
+        target,
+        target,
+        target,
+    )
+
+
+COUNTDOWN_SHORT = countdown_module(45, COUNTDOWN_KEEP_SHORT)
+COUNTDOWN_LONG = countdown_module(170, COUNTDOWN_KEEP_LONG)

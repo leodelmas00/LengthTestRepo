@@ -3,7 +3,7 @@
 import time
 
 from config import prompts as P
-from src.metrics import evaluate
+from src.metrics import clean_countdown, evaluate
 from src.mh import MAX_ROUNDS, run_mh
 
 
@@ -133,6 +133,8 @@ def run_request(client, experiment, max_retries=2, temperature=0.0):
             text, finish_reason, retries = _run_simple_retry(
                 client, experiment, messages, max_retries, temperature
             )
+            if experiment.strip_markers:
+                text = clean_countdown(text)
             evaluation = evaluate(
                 text, experiment.lo, experiment.hi, experiment.target
             )
