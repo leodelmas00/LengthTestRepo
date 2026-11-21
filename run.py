@@ -124,6 +124,17 @@ def main():
                     "latency_ms": 0.0,
                     "finish_reason": None,
                     "error": "%s: %s" % (type(exc).__name__, exc),
+                    "initial_word_count": None,
+                    "initial_in_window": None,
+                    "rounds": None,
+                    "rejected": None,
+                    "judge_calls": None,
+                    "in_window_r0": None,
+                    "in_window_r1": None,
+                    "in_window_r2": None,
+                    "in_window_r3": None,
+                    "in_window_r4": None,
+                    "in_window_r5": None,
                 }
             records.append(record)
             done += 1

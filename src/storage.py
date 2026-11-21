@@ -28,6 +28,16 @@ COLUMNS = [
     "mean_sentences",
     "mean_paragraphs",
     "mean_retries",
+    "mean_initial_words",
+    "pct_in_window_r0",
+    "pct_in_window_r1",
+    "pct_in_window_r2",
+    "pct_in_window_r3",
+    "pct_in_window_r4",
+    "pct_in_window_r5",
+    "mean_rounds",
+    "mean_rejected",
+    "mean_judge_calls",
 ]
 
 
@@ -102,6 +112,19 @@ def aggregate(records):
                 ("mean_sentences", _mean([r["sentence_count"] for r in group])),
                 ("mean_paragraphs", _mean([r["paragraph_count"] for r in group])),
                 ("mean_retries", _mean([r["retries"] for r in group])),
+                (
+                    "mean_initial_words",
+                    _mean([r.get("initial_word_count") for r in group]),
+                ),
+                ("pct_in_window_r0", _pct([r.get("in_window_r0") for r in group])),
+                ("pct_in_window_r1", _pct([r.get("in_window_r1") for r in group])),
+                ("pct_in_window_r2", _pct([r.get("in_window_r2") for r in group])),
+                ("pct_in_window_r3", _pct([r.get("in_window_r3") for r in group])),
+                ("pct_in_window_r4", _pct([r.get("in_window_r4") for r in group])),
+                ("pct_in_window_r5", _pct([r.get("in_window_r5") for r in group])),
+                ("mean_rounds", _mean([r.get("rounds") for r in group])),
+                ("mean_rejected", _mean([r.get("rejected") for r in group])),
+                ("mean_judge_calls", _mean([r.get("judge_calls") for r in group])),
             ]
         )
         rows.append(row)

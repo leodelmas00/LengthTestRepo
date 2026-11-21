@@ -165,3 +165,82 @@ def build_system_prompt(length_module=None, formality_module=None, example_modul
     if example_module:
         parts.append(example_module)
     return "\n\n".join(parts)
+
+
+# --- Metropolis-Hastings: revision feedback and judge ---------------------
+
+JUDGE_SYSTEM = "You are a powerful evaluator for travel assistant responses."
+
+
+def revision_feedback(word_count, lo, hi, target, near_threshold=3, margin=5):
+    """Build the REVISION FEEDBACK turn for the MH sampler.
+
+    The distance is measured to the nearest window edge. Beyond
+    ``near_threshold`` the feedback is qualitative (aim for the target);
+    otherwise it asks for a concrete delta plus ``margin`` words.
+    """
+    if word_count < lo:
+        too_short = True
+        distance = lo - word_count
+    else:
+        too_short = False
+        distance = word_count - hi
+
+    if distance > near_threshold:
+        if too_short:
+            return (
+                "The generated answer is too short at %d words. Please improve "
+                "it to be about %d words by adding some relevant details and "
+                "examples. Keep the same register. Reply only with the new "
+                "response." % (word_count, target)
+            )
+        return (
+            "The generated answer is too long at %d words. Please improve it to "
+            "be about %d words by focusing on the core ideas and removing "
+            "secondary details. Keep the same register. Reply only with the new "
+            "response." % (word_count, target)
+        )
+
+    direction = "short" if too_short else "long"
+    action = "add" if too_short else "delete"
+    return (
+        "The generated answer is too %s at %d words. Please %s %d words "
+        "appropriately based on the previous response. Keep the same register. "
+        "Reply only with the new response."
+        % (direction, word_count, action, distance + margin)
+    )
+
+
+def judge_messages(length, formality, user_message, candidate, previous):
+    """Build the judge call. Response 1 = candidate, Response 2 = previous."""
+    detail = "level of detail" if length == "long" else "conciseness"
+    criteria = "helpfulness, relevance, accuracy, %s" % detail
+    register_clause = ""
+    if formality is not None:
+        criteria += ", and register adherence"
+        if formality == "formal":
+            register_text = (
+                "formal: no contractions, precise terminology, impersonal or "
+                "third-person constructions, professional tone"
+            )
+        else:
+            register_text = (
+                "informal: contractions, everyday vocabulary, second-person "
+                "address, speaking from personal experience"
+            )
+        register_clause = (
+            " Register adherence means the response must be %s." % register_text
+        )
+    user = (
+        "Compare two responses to the same user message. Score each response "
+        "from 1 to 10 on each criterion: %s.%s Avoid position biases and ensure "
+        "that the order in which the responses were presented does not "
+        "influence your decision.\nUser message: %s\nResponse 1: %s\n"
+        "Response 2: %s\nOutput only JSON: "
+        '{"score_1": <sum of criteria>, "score_2": <sum of criteria>}'
+        % (criteria, register_clause, user_message, candidate, previous)
+    )
+    return [
+        {"role": "system", "content": JUDGE_SYSTEM},
+        {"role": "user", "content": user},
+    ]

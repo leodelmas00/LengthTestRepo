@@ -1,9 +1,10 @@
-"""Generation loop, including the retry mechanisms."""
+"""Generation loop, including the retry / iterative-sampling mechanisms."""
 
 import time
 
 from config import prompts as P
 from src.metrics import evaluate
+from src.mh import MAX_ROUNDS, run_mh
 
 
 def _example_module(experiment):
@@ -53,70 +54,95 @@ def generic_feedback(too_short):
     )
 
 
-def run_request(client, experiment, max_retries=2, temperature=0.0):
-    """Generate one response for an experiment, applying retries if requested."""
-    messages = [
-        {"role": "system", "content": build_system(experiment)},
-        {"role": "user", "content": P.USER_PROMPT},
-    ]
+def _empty_evaluation():
+    return {
+        "word_count": None,
+        "sentence_count": None,
+        "paragraph_count": None,
+        "in_window": None,
+        "under": None,
+        "over": None,
+        "abs_error": None,
+    }
 
-    started = time.time()
+
+def _run_simple_retry(client, experiment, messages, max_retries, temperature):
+    """Generate once, then apply concrete/generic feedback retries."""
+    result = client.chat(messages, temperature=temperature)
+    text = result["text"]
+    finish_reason = result["finish_reason"]
     retries = 0
-    error = None
-    text = ""
-    finish_reason = None
 
-    try:
+    while experiment.retry_mode and experiment.lo is not None:
+        current = evaluate(text, experiment.lo, experiment.hi, experiment.target)
+        if current["in_window"] or retries >= max_retries:
+            break
+
+        too_short = bool(current["under"])
+        if experiment.retry_mode == "concrete":
+            feedback = concrete_feedback(
+                current["word_count"],
+                experiment.lo,
+                experiment.hi,
+                experiment.target,
+                too_short,
+            )
+        elif experiment.retry_mode == "generic":
+            feedback = generic_feedback(too_short)
+        else:
+            break
+
+        messages = messages + [
+            {"role": "assistant", "content": text},
+            {"role": "user", "content": feedback},
+        ]
+        retries += 1
         result = client.chat(messages, temperature=temperature)
         text = result["text"]
         finish_reason = result["finish_reason"]
 
-        while experiment.retry_mode and experiment.lo is not None:
-            current = evaluate(text, experiment.lo, experiment.hi, experiment.target)
-            if current["in_window"] or retries >= max_retries:
-                break
+    return text, finish_reason, retries
 
-            too_short = bool(current["under"])
-            if experiment.retry_mode == "concrete":
-                feedback = concrete_feedback(
-                    current["word_count"],
-                    experiment.lo,
-                    experiment.hi,
-                    experiment.target,
-                    too_short,
-                )
-            elif experiment.retry_mode == "generic":
-                feedback = generic_feedback(too_short)
-            else:
-                break
 
-            messages = messages + [
-                {"role": "assistant", "content": text},
-                {"role": "user", "content": feedback},
-            ]
-            retries += 1
-            result = client.chat(messages, temperature=temperature)
-            text = result["text"]
-            finish_reason = result["finish_reason"]
+def run_request(client, experiment, max_retries=2, temperature=0.0):
+    """Generate one response for an experiment, applying the configured mechanism."""
+    system_prompt = build_system(experiment)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": P.USER_PROMPT},
+    ]
+
+    started = time.time()
+    error = None
+    text = ""
+    finish_reason = None
+    retries = 0
+    evaluation = None
+    mh_result = None
+
+    try:
+        if experiment.retry_mode == "mh":
+            mh_result = run_mh(
+                client, experiment, system_prompt, temperature=temperature
+            )
+            text = mh_result["text"]
+            finish_reason = mh_result["finish_reason"]
+            evaluation = mh_result["evaluation"]
+            retries = mh_result["rounds"]
+        else:
+            text, finish_reason, retries = _run_simple_retry(
+                client, experiment, messages, max_retries, temperature
+            )
+            evaluation = evaluate(
+                text, experiment.lo, experiment.hi, experiment.target
+            )
     except Exception as exc:  # noqa: BLE001 - recorded per request, run continues
         error = "%s: %s" % (type(exc).__name__, exc)
+        evaluation = _empty_evaluation()
 
     latency_ms = (time.time() - started) * 1000.0
 
-    if error is None:
-        evaluation = evaluate(text, experiment.lo, experiment.hi, experiment.target)
-    else:
-        evaluation = {
-            "word_count": None,
-            "sentence_count": None,
-            "paragraph_count": None,
-            "in_window": None,
-            "under": None,
-            "over": None,
-            "abs_error": None,
-        }
-
-    return {
+    record = {
         "experiment_id": experiment.id,
         "group": experiment.group,
         "length": experiment.length,
@@ -137,4 +163,23 @@ def run_request(client, experiment, max_retries=2, temperature=0.0):
         "latency_ms": latency_ms,
         "finish_reason": finish_reason,
         "error": error,
+        # MH-specific fields (None for the other techniques)
+        "initial_word_count": None,
+        "initial_in_window": None,
+        "rounds": None,
+        "rejected": None,
+        "judge_calls": None,
     }
+    for index in range(MAX_ROUNDS + 1):
+        record["in_window_r%d" % index] = None
+
+    if mh_result is not None and error is None:
+        record["initial_word_count"] = mh_result["initial_word_count"]
+        record["initial_in_window"] = mh_result["initial_in_window"]
+        record["rounds"] = mh_result["rounds"]
+        record["rejected"] = mh_result["rejected"]
+        record["judge_calls"] = mh_result["judge_calls"]
+        for index, flag in enumerate(mh_result["round_flags"]):
+            record["in_window_r%d" % index] = flag
+
+    return record

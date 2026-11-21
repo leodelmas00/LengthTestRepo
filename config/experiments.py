@@ -188,6 +188,14 @@ def _build():
         retry_mode="generic",
     )
 
+    # 12. Metropolis-Hastings iterative sampling with judge filter.
+    add_cells(
+        "retry_mh", "metropolis_hastings",
+        {"short": P.LENGTH_SHORT, "long": P.LENGTH_LONG},
+        FORMALITY_MODS,
+        retry_mode="mh",
+    )
+
     return exps
 
 
