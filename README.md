@@ -7,7 +7,8 @@ dimension.
 - Model: `mistralai/Mistral-Small-3.2-24B-Instruct-2506` (DeepInfra).
 - Temperature `0`, no memory.
 - 100 requests per experiment by default.
-- Output: one **aggregated CSV** (`results/summary.csv`).
+- Outputs: aggregated `results/summary.csv` plus one per-technique CSV with
+  one row per request (includes the user question and the model response).
 
 ## Setup
 
@@ -21,16 +22,17 @@ cp .env.example .env   # add DEEPINFRA_API_KEY
 ## Usage
 
 ```bash
-python run.py --list                 # show the 39 experiments
+python run.py --list                 # show all experiments with numeric ids
 python run.py --dry-run              # print assembled prompts, no API calls
 python run.py --experiments baseline --n 2
 python run.py --n 100 --concurrency 8 --out results/summary.csv
 ```
 
-Select experiments by id (`combo__short_informal`) or by group
-(`baseline`, `aislados`, `combinaciones`, `over_asking`, `unidad_a`, `unidad_b`,
-`desacople_informal`, `one_shot`, `few_shot`, `retry_concrete`, `retry_generic`,
-`retry_mh`, `countdown`).
+Select experiments by id (`unidad_a__short_informal`), by group
+(`baseline`, `aislados`, `combinaciones`, `over_asking`, `unidad_a - sentences`,
+`unidad_b - paragraphs`, `desacople_informal`, `one_shot`, `few_shot`,
+`retry_concrete`, `retry_generic`, `retry_mh`, `countdown`) or by numeric id
+(`14`).
 
 ## Prompt assembly
 
@@ -45,7 +47,7 @@ BASE
 The user prompt is fixed:
 `Hi, can you book me a flight from Buenos Aires to Mexico?`
 
-## Experiments (39)
+## Experiments (47)
 
 | Group | Cells |
 |---|---|
@@ -53,8 +55,8 @@ The user prompt is fixed:
 | `aislados` | length-short, length-long, formality-formal, formality-informal |
 | `combinaciones` | short/long × formal/informal |
 | `over_asking` | 4 cells, over-asked length modules (short→60-90, long→200-260) |
-| `unidad_a` | 4 cells, sentences-based length instruction |
-| `unidad_b` | 4 cells, paragraphs-based length instruction |
+| `unidad_a - sentences` | 4 cells, sentences-based length instruction |
+| `unidad_b - paragraphs` | 4 cells, paragraphs-based length instruction |
 | `desacople_informal` | short+informal, long+informal with decoupled informal module |
 | `one_shot` | 4 cells, 1 example from `few_shot_bank.json` |
 | `few_shot` | 4 cells, 3 fixed examples |
@@ -69,9 +71,20 @@ long `[140, 200]` (target 170). Over-asking cells record both `target` and
 
 ## Metrics
 
-Per experiment the aggregated CSV reports: `n`, `errors`, `mean/median/std/min/max`
-words, `pct_in_window`, `pct_under`, `pct_over`, `mae_vs_target`,
-`mean_sentences`, `mean_paragraphs`, `mean_retries`.
+`results/summary.csv` is aggregated: one row per experiment with `id` (numeric),
+`name` (readable key), `group`, `length`, `formality`, `technique`, `n`,
+`errors`, `mean/median/std/min/max` words, `pct_in_window`, `pct_under`,
+`pct_over`, `mae_vs_target`, `mean_sentences`, `mean_paragraphs`,
+`mean_retries`, plus the `retry_mh` columns.
+
+Each `results/<technique>.csv` is per-request: `id, name, group, length,
+formality, technique, run_index, target, lo, hi, asked_target, user_question,
+response, word_count, sentence_count, paragraph_count, in_window, under, over,
+retries, finish_reason, error`. For `countdown`, `response` is already cleaned
+of `<k>` markers.
+
+Column reference (what each one means and why some cells are blank) is in
+[COLUMNS.md](COLUMNS.md).
 
 Word counting is done in code with `len(text.split())`, matching the
 `word_count` values in `few_shot_bank.json`.

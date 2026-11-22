@@ -5,7 +5,8 @@ import statistics
 from collections import OrderedDict
 
 COLUMNS = [
-    "experiment_id",
+    "id",
+    "name",
     "group",
     "length",
     "formality",
@@ -38,6 +39,31 @@ COLUMNS = [
     "mean_rounds",
     "mean_rejected",
     "mean_judge_calls",
+]
+
+RECORD_COLUMNS = [
+    "id",
+    "name",
+    "group",
+    "length",
+    "formality",
+    "technique",
+    "run_index",
+    "target",
+    "lo",
+    "hi",
+    "asked_target",
+    "user_question",
+    "response",
+    "word_count",
+    "sentence_count",
+    "paragraph_count",
+    "in_window",
+    "under",
+    "over",
+    "retries",
+    "finish_reason",
+    "error",
 ]
 
 
@@ -89,7 +115,8 @@ def aggregate(records):
 
         row = OrderedDict(
             [
-                ("experiment_id", experiment_id),
+                ("id", _blank(first.get("num_id"))),
+                ("name", experiment_id),
                 ("group", first["group"]),
                 ("length", _blank(first["length"])),
                 ("formality", _blank(first["formality"])),
@@ -128,6 +155,7 @@ def aggregate(records):
             ]
         )
         rows.append(row)
+    rows.sort(key=lambda row: row["id"] if isinstance(row["id"], int) else 0)
     return rows
 
 
@@ -137,3 +165,41 @@ def write_csv(path, rows):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def write_records_csv(path, records):
+    """Write one row per request (includes the user question and response)."""
+    records = sorted(
+        records,
+        key=lambda r: (r.get("num_id") or 0, r.get("run_index") or 0),
+    )
+    with open(path, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=RECORD_COLUMNS)
+        writer.writeheader()
+        for record in records:
+            writer.writerow(
+                {
+                    "id": _blank(record.get("num_id")),
+                    "name": record.get("experiment_id", ""),
+                    "group": record.get("group", ""),
+                    "length": _blank(record.get("length")),
+                    "formality": _blank(record.get("formality")),
+                    "technique": record.get("technique", ""),
+                    "run_index": _blank(record.get("run_index")),
+                    "target": _blank(record.get("target")),
+                    "lo": _blank(record.get("lo")),
+                    "hi": _blank(record.get("hi")),
+                    "asked_target": _blank(record.get("asked_target")),
+                    "user_question": record.get("user_question", ""),
+                    "response": record.get("response", ""),
+                    "word_count": _blank(record.get("word_count")),
+                    "sentence_count": _blank(record.get("sentence_count")),
+                    "paragraph_count": _blank(record.get("paragraph_count")),
+                    "in_window": _blank(record.get("in_window")),
+                    "under": _blank(record.get("under")),
+                    "over": _blank(record.get("over")),
+                    "retries": _blank(record.get("retries")),
+                    "finish_reason": _blank(record.get("finish_reason")),
+                    "error": _blank(record.get("error")),
+                }
+            )

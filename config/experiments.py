@@ -4,7 +4,7 @@ Each experiment is one prompt configuration (a cell plus a technique) that is
 repeated `--n` times (100 by default) against the same user prompt.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional, Tuple
 
 from config import prompts as P
@@ -26,6 +26,7 @@ class Experiment:
     hi: Optional[int]               # desired window upper bound
     asked_target: Optional[int]     # target actually requested in the prompt
     strip_markers: bool = False     # remove <k> countdown markers before counting
+    num_id: int = 0                 # stable numeric id (1..N), assigned in order
 
 
 CELLS = [
@@ -85,13 +86,15 @@ def _build():
     )
 
     def add_cells(group, technique, length_mods, formality_mods,
-                  example_ids=None, retry_mode=None, asked=None, strip_markers=False):
+                  example_ids=None, retry_mode=None, asked=None, strip_markers=False,
+                  id_prefix=None):
+        prefix = id_prefix or group
         for length, formality in CELLS:
             target, lo, hi = WINDOWS[length]
             asked_target = asked[length] if asked else target
             exps.append(
                 Experiment(
-                    "%s__%s_%s" % (group, length, formality),
+                    "%s__%s_%s" % (prefix, length, formality),
                     group,
                     length,
                     formality,
@@ -125,16 +128,18 @@ def _build():
 
     # 5. Alternative unit A: sentences.
     add_cells(
-        "unidad_a", "sentences",
+        "unidad_a - sentences", "sentences",
         {"short": P.LENGTH_SHORT_SENT, "long": P.LENGTH_LONG_SENT},
         FORMALITY_MODS,
+        id_prefix="unidad_a",
     )
 
     # 6. Alternative unit B: paragraphs.
     add_cells(
-        "unidad_b", "paragraphs",
+        "unidad_b - paragraphs", "paragraphs",
         {"short": P.LENGTH_SHORT_PAR, "long": P.LENGTH_LONG_PAR},
         FORMALITY_MODS,
+        id_prefix="unidad_b",
     )
 
     # 7. Decoupling the informal module from brevity.
@@ -206,7 +211,7 @@ def _build():
         strip_markers=True,
     )
 
-    return exps
+    return [replace(exp, num_id=index) for index, exp in enumerate(exps, start=1)]
 
 
 EXPERIMENTS = _build()

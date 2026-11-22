@@ -5,16 +5,22 @@ Examples:
     python run.py --dry-run
     python run.py --experiments baseline --n 2
     python run.py --n 100 --concurrency 8 --out results/summary.csv
+
+Outputs:
+    results/summary.csv        aggregated, one row per experiment
+    results/<technique>.csv    one row per request (question + response + metrics)
 """
 
 import argparse
 import os
+import re
 import sys
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config.experiments import EXPERIMENTS, GROUPS
 from src.runner import build_system, run_request
-from src.storage import aggregate, write_csv
+from src.storage import aggregate, write_csv, write_records_csv
 
 
 def select_experiments(spec):
@@ -25,13 +31,21 @@ def select_experiments(spec):
     selected = [
         exp
         for exp in EXPERIMENTS
-        if exp.id in wanted or exp.group in wanted
+        if exp.id in wanted or exp.group in wanted or str(exp.num_id) in wanted
     ]
-    known = {exp.id for exp in EXPERIMENTS} | {exp.group for exp in EXPERIMENTS}
+    known = (
+        {exp.id for exp in EXPERIMENTS}
+        | {exp.group for exp in EXPERIMENTS}
+        | {str(exp.num_id) for exp in EXPERIMENTS}
+    )
     missing = [item for item in wanted if item not in known]
     if missing:
         print("Advertencia: ids/grupos desconocidos: %s" % ", ".join(missing), file=sys.stderr)
     return selected
+
+
+def _slug(text):
+    return re.sub(r"[^0-9A-Za-z]+", "_", text).strip("_")
 
 
 def main():
@@ -39,7 +53,7 @@ def main():
     parser.add_argument(
         "--experiments",
         default="all",
-        help="Comma-separated experiment ids and/or groups (default: all).",
+        help="Comma-separated experiment ids, groups or numeric ids (default: all).",
     )
     parser.add_argument("--n", type=int, default=100, help="Requests per experiment.")
     parser.add_argument("--concurrency", type=int, default=8, help="Concurrent requests.")
@@ -62,7 +76,10 @@ def main():
 
     if args.list:
         for exp in EXPERIMENTS:
-            print("%-40s %-22s %s/%s" % (exp.id, exp.group, exp.length, exp.formality))
+            print(
+                "%-3d %-40s %-24s %s/%s"
+                % (exp.num_id, exp.id, exp.group, exp.length, exp.formality)
+            )
         print("\nTotal: %d experiments (%d groups)" % (len(EXPERIMENTS), len(GROUPS)))
         return
 
@@ -74,7 +91,7 @@ def main():
     if args.dry_run:
         for exp in experiments:
             print("=" * 90)
-            print(exp.id)
+            print("[%d] %s" % (exp.num_id, exp.id))
             print("-" * 90)
             print(build_system(exp))
         return
@@ -88,31 +105,32 @@ def main():
         % (len(experiments), args.n, total, args.concurrency)
     )
 
+    tasks = [(exp, index) for exp in experiments for index in range(args.n)]
     records = []
     done = 0
     with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         futures = {
             pool.submit(
                 run_request, client, exp, args.max_retries, args.temperature
-            ): exp.id
-            for exp in experiments
-            for _ in range(args.n)
+            ): (exp, run_index)
+            for exp, run_index in tasks
         }
         for future in as_completed(futures):
-            experiment_id = futures[future]
+            exp, run_index = futures[future]
             try:
                 record = future.result()
             except Exception as exc:  # noqa: BLE001 - defensive, run continues
                 record = {
-                    "experiment_id": experiment_id,
-                    "group": "",
-                    "length": None,
-                    "formality": None,
-                    "technique": "",
-                    "target": None,
-                    "lo": None,
-                    "hi": None,
-                    "asked_target": None,
+                    "experiment_id": exp.id,
+                    "num_id": exp.num_id,
+                    "group": exp.group,
+                    "length": exp.length,
+                    "formality": exp.formality,
+                    "technique": exp.technique,
+                    "target": exp.target,
+                    "lo": exp.lo,
+                    "hi": exp.hi,
+                    "asked_target": exp.asked_target,
                     "word_count": None,
                     "sentence_count": None,
                     "paragraph_count": None,
@@ -124,35 +142,44 @@ def main():
                     "latency_ms": 0.0,
                     "finish_reason": None,
                     "error": "%s: %s" % (type(exc).__name__, exc),
-                    "initial_word_count": None,
-                    "initial_in_window": None,
-                    "rounds": None,
-                    "rejected": None,
-                    "judge_calls": None,
-                    "in_window_r0": None,
-                    "in_window_r1": None,
-                    "in_window_r2": None,
-                    "in_window_r3": None,
-                    "in_window_r4": None,
-                    "in_window_r5": None,
+                    "user_question": "",
+                    "response": "",
                 }
+            record["run_index"] = run_index
             records.append(record)
             done += 1
             if record["error"]:
                 print(
                     "  [%d/%d] ERROR %s -> %s"
-                    % (done, total, experiment_id, record["error"]),
+                    % (done, total, record["experiment_id"], record["error"]),
                     file=sys.stderr,
                 )
-            elif done % max(1, args.concurrency) == 0 or done == total:
-                print("  [%d/%d] completados" % (done, total))
+            else:
+                print(
+                    "  [%d/%d] %s (run %d) -> %s words"
+                    % (
+                        done,
+                        total,
+                        record["experiment_id"],
+                        run_index,
+                        record["word_count"],
+                    )
+                )
 
+    out_dir = os.path.dirname(args.out) or "."
+    os.makedirs(out_dir, exist_ok=True)
     rows = aggregate(records)
-    out_dir = os.path.dirname(args.out)
-    if out_dir:
-        os.makedirs(out_dir, exist_ok=True)
     write_csv(args.out, rows)
+
+    by_group = OrderedDict()
+    for record in records:
+        by_group.setdefault(record["group"], []).append(record)
+    for group, group_records in by_group.items():
+        path = os.path.join(out_dir, _slug(group) + ".csv")
+        write_records_csv(path, group_records)
+
     print("Resumen agregado escrito en: %s (%d filas)" % (args.out, len(rows)))
+    print("CSV por tecnica escritos en: %s (%d archivos)" % (out_dir, len(by_group)))
 
 
 if __name__ == "__main__":

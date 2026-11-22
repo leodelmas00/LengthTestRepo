@@ -146,6 +146,7 @@ def run_request(client, experiment, max_retries=2, temperature=0.0):
 
     record = {
         "experiment_id": experiment.id,
+        "num_id": experiment.num_id,
         "group": experiment.group,
         "length": experiment.length,
         "formality": experiment.formality,
@@ -165,6 +166,8 @@ def run_request(client, experiment, max_retries=2, temperature=0.0):
         "latency_ms": latency_ms,
         "finish_reason": finish_reason,
         "error": error,
+        "user_question": P.USER_PROMPT,
+        "response": text,
         # MH-specific fields (None for the other techniques)
         "initial_word_count": None,
         "initial_in_window": None,
