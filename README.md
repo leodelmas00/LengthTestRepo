@@ -34,6 +34,33 @@ Select experiments by id (`unidad_a__short_informal`), by group
 `retry_concrete`, `retry_generic`, `retry_mh`, `countdown`) or by numeric id
 (`14`).
 
+### Parameters
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--experiments` | `all` | Comma-separated ids, groups and/or numeric ids to run. |
+| `--n` | `100` | Requests per experiment (each "point" of the matrix). |
+| `--concurrency` | `8` | Parallel worker threads. |
+| `--out` | `results/summary.csv` | Aggregated CSV path; per-technique CSVs are written next to it. |
+| `--temperature` | `0.0` | Sampling temperature (keep at 0). |
+| `--max-retries` | `2` | Max retries for the retry experiments. |
+| `--dry-run` | — | Print the assembled prompts; no API calls. |
+| `--list` | — | List the 47 experiments with ids and exit. |
+
+Examples:
+
+```bash
+python run.py --list                                   # see all experiments
+python run.py --dry-run --experiments countdown        # inspect prompts, no API
+python run.py --experiments retry_mh --n 100           # one technique, all cells
+python run.py --experiments 14,15 --n 5                # by numeric id, quick test
+python run.py --experiments retry_mh,retry_concrete --max-retries 5 --n 100  # fair comparison
+python run.py --n 100 --concurrency 8 --out results/summary.csv
+```
+
+Note: retry experiments (`retry_concrete`, `retry_generic`, `retry_mh`) may make
+more than one API call per request when a response lands outside the window.
+
 ## Prompt assembly
 
 ```
@@ -140,7 +167,7 @@ unaffected.
 
 ```
 config/prompts.py       # prompt modules + build_system_prompt / build_example_module
-config/experiments.py   # 39 experiment definitions
+config/experiments.py   # 47 experiment definitions
 src/client.py           # DeepInfra (OpenAI-compatible) client
 src/metrics.py          # word / sentence / paragraph counting + window evaluation
 src/runner.py           # generation + retry loop
